@@ -134,3 +134,29 @@ class TestArticleViews:
         del authorp['following']
         # assert profile_schema.dump(user).data['profile'] == authorp
         assert profile_schema.dump(user)['profile'] == authorp
+
+    def test_update_comment(self, testapp, user):
+        user = user.get()
+        resp = testapp.post_json(url_for('user.login_user'), {'user': {
+            'email': user.email,
+            'password': 'myprecious'
+        }})
+        token = str(resp.json['user']['token'])
+        headers = {'Authorization': 'Token {}'.format(token)}
+        resp = testapp.post_json(url_for('articles.make_article'), {
+            "article": {
+                "title": "How to train your dragon",
+                "description": "Ever wonder how?",
+                "body": "You have to believe",
+            }
+        }, headers=headers)
+        slug = resp.json['article']['slug']
+        resp = testapp.post_json(url_for('articles.make_comment_on_article', slug=slug), {
+            "comment": {"body": "first version"}
+        }, headers=headers)
+        cid = resp.json['comment']['id']
+
+        resp = testapp.put_json(url_for('articles.update_comment_on_article', slug=slug, cid=cid), {
+            "comment": {"body": "second version"}
+        }, headers=headers)
+        assert resp.json['comment']['body'] == 'second version'
