@@ -101,6 +101,10 @@ class Article(SurrogatePK, Model):
         return False
 
     @property
+    def commentsCount(self):
+        return len(self.comments.all())
+
+    @property
     def favoritesCount(self):
         return len(self.favoriters.all())
 

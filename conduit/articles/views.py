@@ -166,3 +166,21 @@ def delete_comment_on_article(slug, cid):
     comment = article.comments.filter_by(id=cid, author=current_user.profile).first()
     comment.delete()
     return '', 200
+
+
+@blueprint.route('/api/articles/<slug>/comments/<cid>', methods=('PUT',))
+@jwt_required
+@use_kwargs(comment_schema)
+@marshal_with(comment_schema)
+def update_comment_on_article(slug, cid, body, **kwargs):
+    article = Article.query.filter_by(slug=slug).first()
+    if not article:
+        raise InvalidUsage.article_not_found()
+
+    comment = Comment.query.filter_by(id=cid).first()
+    print("updating comment", comment.id, body)
+    try:
+        comment.update(body=body, **kwargs)
+    except:
+        pass
+    return comment
